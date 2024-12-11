@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "891075547608",
+    "project_id": "billu-280604",
+    "storage_bucket": "billu-280604.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:891075547608:android:f791cc3e0f5c9877ac62ad",
+        "android_client_info": {
+          "package_name": "com.practice.mynotes"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6Yl83CDSGX9Z1zfIlLAhannQkQwi56b0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
