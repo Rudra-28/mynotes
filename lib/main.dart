@@ -5,6 +5,7 @@ import 'package:mynotes/firebase_options.dart';
 import 'package:mynotes/views/login_view.dart';
 import 'package:mynotes/views/register_view.dart';
 import 'package:mynotes/views/verifyemail_view.dart';
+// ignore: unused_import
 import 'dart:developer' as devtools show log;
 
 void main() {
@@ -19,7 +20,9 @@ void main() {
       home: const HomePage(),
       routes: <String, WidgetBuilder>{
         '/login/': (context) => const LoginView(),
-        '/register/': (context) => const RegisterView()
+        '/register/': (context) => const RegisterView(),
+        '/notes/':(context)=> const NotesView(),
+
       },
     ),
   );
