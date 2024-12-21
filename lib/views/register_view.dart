@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as devtools show log;
 
 import 'package:mynotes/constants/routes.dart';
+import 'package:mynotes/utilities/show_error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -12,6 +13,7 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
+
   late final TextEditingController _email;
   late final TextEditingController _password;
 
@@ -62,21 +64,22 @@ class _RegisterViewState extends State<RegisterView> {
                 final password = _password.text;
                 // ignore: unused_local_variable
                 try {
-                 
-                  final userCredential = await FirebaseAuth.instance
+                  await FirebaseAuth.instance
                       .createUserWithEmailAndPassword(
                     email: email,
                     password: password,
                   );
-                  devtools.log(userCredential.toString());
+                  final user = FirebaseAuth.instance.currentUser;
+                  user?.sendEmailVerification();
+                  Navigator.of(context).pushNamed(verifyRoutes);
                 } on FirebaseAuthException catch (e) {
                     devtools.log(e.code);
                   if (e.code == 'weak-password') {
-                    devtools.log("password too weak");
+                    await showErrorDialog(context, 'Enter Strong Password');
                   } else if (e.code == 'email-already-in-use') {
-                   devtools.log('have different user email');
+                   await showErrorDialog(context, 'Email already in use, Use different email address');
                   } else if (e.code == 'invalid-email') {
-                    devtools.log('please enter valid email address');
+                    await showErrorDialog(context, 'Please enter valid email address');
                   }
                 }
               },

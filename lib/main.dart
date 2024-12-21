@@ -8,7 +8,7 @@ import 'package:mynotes/views/register_view.dart';
 import 'package:mynotes/views/verifyemail_view.dart';
 // ignore: unused_import
 import 'dart:developer' as devtools show log;
-
+ 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
@@ -23,6 +23,7 @@ void main() {
         loginRoute: (context) => const LoginView(),
         registerRoute: (context) => const RegisterView(),
         notesRoute:(context)=> const NotesView(),
+        verifyRoutes: (context)=> const VerifyEmailView(),
       },
     ),
   );
