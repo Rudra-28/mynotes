@@ -1,14 +1,22 @@
 //we are going to abstract the firebase auth into the own provider
 // out firebase_auth_provider is going to be the concrete implementation of the file auth_provider
 // this file or class is going to return a instances of the abstract class in the auth_provider
+import 'package:firebase_core/firebase_core.dart';
+import 'package:mynotes/firebase_options.dart';
 import 'package:mynotes/services/auth/auth_user.dart';
 import 'package:mynotes/services/auth/auth_provider.dart';
 import 'package:mynotes/services/auth/auth_exception.dart';
-
-import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException;
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException;
 
 class FirebaseAuthProvider implements AuthProvider {
+  
+   @override
+  Future<void> initialize() async {
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+  }
+
   @override
   Future<AuthUser> createUser({
     required String email,
@@ -67,14 +75,15 @@ class FirebaseAuthProvider implements AuthProvider {
         throw UserNotLoggedInException();
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found'){
+      print(e.toString());
+      if (e.code == 'invalid-credential'){
           throw UserNotFoundAuthException();
-      }else if (e.code=='wrong=password'){
+      }else if (e.code== 'wrong-password'){
           throw WrongPasswordAuthException();
       }else {
           throw GenericAuthException();
       }
-    } catch (e) {
+    } catch (_) {
           throw GenericAuthException();
     }
   }
