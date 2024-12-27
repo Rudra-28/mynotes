@@ -1,6 +1,4 @@
-import 'dart:math';
-
-import 'package:mynotes/services/auth/auth_exception.dart';
+import 'package:mynotes/services/auth/auth_exception.dart' show UserNotFoundAuthException, WrongPasswordAuthException;
 import 'package:mynotes/services/auth/auth_provider.dart';
 import 'package:mynotes/services/auth/auth_user.dart';
 import 'package:test/test.dart';
