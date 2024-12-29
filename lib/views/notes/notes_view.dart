@@ -34,6 +34,10 @@ class _NotesViewState extends State<NotesView> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            onPressed: (){
+              Navigator.of(context).pushNamed(newNoteRoute);
+            }, icon: const Icon(Icons.add)),
           PopupMenuButton<MenuAction>(onSelected: (value)async{
             switch (value) {
               case MenuAction.logout:
@@ -57,6 +61,7 @@ class _NotesViewState extends State<NotesView> {
         ],
         title: const Text("Your Notes"),
       ),
+      //a snapshot is an instance of the AsyncSnapshot class that contains the state and result of a Future or Stream operation
       body: FutureBuilder(future: _notesService.getOrCreateUser(email: userEmail),
       builder: (context, snapshot){
         switch (snapshot.connectionState) {

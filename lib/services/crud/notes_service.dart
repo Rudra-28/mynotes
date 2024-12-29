@@ -230,7 +230,6 @@ class NotesService {
     try{
       await open();
     }on DatabaseAlreadyOpenException{
-
     }
   }
   //Opening  the Database
