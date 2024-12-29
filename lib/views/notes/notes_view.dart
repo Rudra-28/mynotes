@@ -62,16 +62,21 @@ class _NotesViewState extends State<NotesView> {
         title: const Text("Your Notes"),
       ),
       //a snapshot is an instance of the AsyncSnapshot class that contains the state and result of a Future or Stream operation
-      body: FutureBuilder(future: _notesService.getOrCreateUser(email: userEmail),
+      body: FutureBuilder(
+      future: _notesService.getOrCreateUser(email: userEmail),
       builder: (context, snapshot){
         switch (snapshot.connectionState) {
           case ConnectionState.done:
             return StreamBuilder(
-              stream: _notesService.allNotes,
+              //at the beginning there are no notes so the stream is empty(null) due to which it is in the state of waiting 
+              //but as soon as there is atleast one note we have only condition for empty ie is waiting,
+              // we need to add the case of active also, for present we were showing circularprogressindicator.
+              stream: _notesService.allNotes, 
               builder: (context, snapshot){
                 switch (snapshot.connectionState) {
                   case ConnectionState.waiting:
-                    return const Text("waiting for all the notes....");
+                  case ConnectionState.active://here we are implicitly following through
+                    return const Text("Waiting for all notes");
                   default: 
                     return CircularProgressIndicator();
                 }
