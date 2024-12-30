@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/crud/notes_service.dart';
-import 'package:sqflite/sqflite.dart';
 
 class NewNotesView extends StatefulWidget {
   const NewNotesView({super.key});
@@ -28,7 +26,7 @@ class _NewNotesViewState extends State<NewNotesView> {
     super.initState();
   }
 
-  void _textEditingListener() async {
+  void _textControllerListener() async {
     final note= _note;
     if(note==null){
       return;
@@ -38,23 +36,23 @@ class _NewNotesViewState extends State<NewNotesView> {
   }
 
   void _setupTextControllerListener(){
-    _textEditingController.removeListener(_textEditingListener);
-    _textEditingController.addListener(_textEditingListener);
+    _textEditingController.removeListener(_textControllerListener);
+    _textEditingController.addListener(_textControllerListener);
   }
 
-
-
-  Future<DatabaseNote> createNewNote ()async {
+  Future<DatabaseNote> createNewNote()async {
+    print('createNewNote() started'); 
     final existingNote= _note;
     if(existingNote!=null){
       return existingNote;
     }
-    final currentUser= AuthService.firebase().currentUser;
-    final email=currentUser!.email!;
+    final currentUser= AuthService.firebase().currentUser!;
+    final email=currentUser.email!;
+    print('Current user email: $email');
     final owner= await _notesService.getUser(email: email);
+    print('Owner retrieved: $owner');
     return await _notesService.createNote(owner: owner);
   }
-
   void _deleteNoteIfTextIsEmpty(){
     final note= _note;
     if(_textEditingController.text.isEmpty && note!=null){
@@ -83,7 +81,8 @@ class _NewNotesViewState extends State<NewNotesView> {
       appBar: AppBar(
         title: const Text("New Note"),
       ),
-    body:FutureBuilder(future: createNewNote(), 
+    body:FutureBuilder(
+    future: createNewNote(), 
     builder: (context, snapshot){
       switch (snapshot.connectionState) {
         case ConnectionState.done:

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mynotes/services/crud/crud_exception.dart';
+import 'package:mynotes/services/crud/crud_exceptions.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
@@ -13,12 +13,19 @@ class NotesService {
   List<DatabaseNote> _notes=[];
   //" 
   static final NotesService _shared= NotesService._sharedInstances();
-  NotesService._sharedInstances(); //private named initializer/constructor
+  NotesService._sharedInstances(){
+    _notesStreamController=StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () => {
+        _notesStreamController.sink.add(_notes)
+      },
+    );
+  }//private named initializer/constructor
   
   // Public factory constructor to provide access
   factory NotesService() => _shared; //whenever the NotesService is called _shared is thrown which than throws _sharedInstances which calls its private intitializer
   //"
-  final _notesStreamController= StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
+
   Stream<List<DatabaseNote>> get allNotes=> _notesStreamController.stream;
 
   Future<DatabaseUser> getOrCreateUser ({required String email}) async { //we need to keep the user ready
@@ -86,7 +93,7 @@ class NotesService {
     );
 
     if (notes.isEmpty) {
-      throw CouldNotFoundNote();
+      throw CouldNotFindNote();
     } else {
       final note= DatabaseNote.fromRow(notes.first.cast<String, Object>());
       _notes.removeWhere((note)=>note.id==id);
@@ -126,17 +133,19 @@ class NotesService {
     final db = _getDataBaseOrThrow();
     //make sure the owner exist in the table with the correct id.
     final dbUser = await getUser(email: owner.email);
-    if (dbUser != owner) {
+    
+    if (dbUser.id != owner.id) {
       throw CouldNotFindUser();
     }
+    print('we got the dbUser: $dbUser');
     //create the note
-    const text = '';
+    const text = ' ';
+    try {
     final noteId = await db.insert(noteTable, {
-      userIdColumn: owner.id,
-      textColumn: text,
-      isSyncedWithCloudColumn: 1,
-    });
-
+    userIdColumn: owner.id,
+    textColumn: text,
+    isSyncedWithCloudColumn: 1,
+  });
     final note = DatabaseNote(
       id: noteId,
       userId: owner.id,
@@ -145,7 +154,14 @@ class NotesService {
     );
     _notes.add(note);
     _notesStreamController.add(_notes);
+    print("returning note");
     return note;
+
+} catch (e) {
+  print('Error inserting note: $e');
+  throw Exception(e);
+  // Handle the error appropriately
+}
   }
 
   //get user
@@ -230,6 +246,7 @@ class NotesService {
     try{
       await open();
     }on DatabaseAlreadyOpenException{
+
     }
   }
   //Opening  the Database
@@ -245,8 +262,6 @@ class NotesService {
       //create user Table
       await db.execute(createUserTable);//sql query
       //create note Table
-      await db.execute('DROP TABLE IF EXISTS note;');
-
       await db.execute(createNoteTable);
       await _cacheNotes();
     } on MissingPlatformDirectoryException {
@@ -254,6 +269,8 @@ class NotesService {
     }
   }
 }
+
+@immutable
 class DatabaseUser {
   final int id;
   final String email;
@@ -261,14 +278,12 @@ class DatabaseUser {
     required this.id,
     required this.email,
   });
-  DatabaseUser.fromRow(Map<String, Object> map)
+  DatabaseUser.fromRow(Map<String, Object?> map)
       : id = map[idColumn] as int,
         email = map[emailColumn] as String;
 
   @override
-  noSuchMethod(Invocation invocation) {
-    String toString() => 'Person, ID=$id, email=$email';
-  }
+  String toString() => 'Person, ID=$id, email=$email';
 
   @override
   bool operator ==(covariant DatabaseUser other) => id == other.id;
@@ -289,7 +304,7 @@ class DatabaseNote {
     required this.text,
     required this.isSyncedWithCloud,
   });
-  DatabaseNote.fromRow(Map<String, Object> map)
+  DatabaseNote.fromRow(Map<String, Object?> map)
       : id = map[idColumn] as int,
         userId = map[userIdColumn] as int,
         text = map[textColumn] as String,
@@ -307,24 +322,24 @@ class DatabaseNote {
   int get hashCode => id.hashCode;
 }
 
-const dbName = 'notes.db';
-const noteTable = 'note'; //this is a tale name defined in the sqlite
-const userTable = 'user'; //this is a tale name defined in the sqlite
-const idColumn = 'id';
-const emailColumn = 'email';
-const userIdColumn = 'user_id';
-const textColumn = 'text';
+const dbName = "testing.db";
+const noteTable = "note"; //this is a table name defined in the sqlite
+const userTable = "user"; //this is a table name defined in the sqlite
+const idColumn = "id";
+const emailColumn = "email";
+const userIdColumn = "user_id";
+const textColumn = "text";
 const isSyncedWithCloudColumn = 'is_synced_with_cloud';
 const createUserTable = '''CREATE TABLE IF NOT EXISTS "user" (
 	  "id"	INTEGER NOT NULL,
 	  "email"	TEXT NOT NULL UNIQUE,
 	  PRIMARY KEY("id" AUTOINCREMENT)
   );''';
-const createNoteTable = '''CREATE TABLE "note" (
-	  "id"	INTEGER NOT NULL,
-	  "user_id"	INTEGER NOT NULL,
-	  "text"	TEXT,
-	  "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
-	  PRIMARY KEY("id" AUTOINCREMENT),
-	  FOREIGN KEY("user_id") REFERENCES "user"("id")
-  );''';
+const createNoteTable = '''CREATE TABLE IF NOT EXISTS "note" (
+	"id"	INTEGER NOT NULL,
+	"user_id"	INTEGER NOT NULL,
+	"text"	TEXT,
+	"is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("user_id") REFERENCES "user"("id")
+);''';
