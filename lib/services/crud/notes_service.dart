@@ -39,7 +39,7 @@ class NotesService {
       rethrow;
     }
   }
-
+  
   Future<void> _cacheNotes ()async {
       final allNotes= await getAllNotes();
       _notes= allNotes.toList();//adding to the list 
@@ -125,6 +125,7 @@ class NotesService {
     } else {
       _notes.removeWhere((note)=>note.id==id);
       _notesStreamController.add(_notes);
+      print("deleted this item successfully");
     }
   }
 

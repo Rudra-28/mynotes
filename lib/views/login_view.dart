@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/services/auth/auth_Exception.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
-import 'package:mynotes/utilities/show_error_dialog.dart';
+import 'package:mynotes/views/utilities/dialogs/error_dialog.dart';
+
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -79,7 +80,7 @@ class _LoginViewState extends State<LoginView> {
                   }
                 }
                  on UserNotFoundAuthException {
-                   await showErrorDialog(
+                (
                       context,
                       'User-Not-Found',
                     );
