@@ -1,15 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:mynotes/services/auth/auth_service.dart';
 import 'package:mynotes/services/crud/notes_service.dart';
+import 'package:mynotes/utilities/generics/get_arguments.dart';
 
-class NewNotesView extends StatefulWidget {
-  const NewNotesView({super.key});
+class CreateUpdateNoteView extends StatefulWidget {
+  const CreateUpdateNoteView({super.key});
 
   @override
-  State<NewNotesView> createState() => _NewNotesViewState();
+  State<CreateUpdateNoteView> createState() => _CreateUpdateNoteViewState();
 }
 
-class _NewNotesViewState extends State<NewNotesView> {
+class _CreateUpdateNoteViewState extends State<CreateUpdateNoteView> {
   //when we hot reload, the futurebuilder containing future<createUser> will be called again which will create a new note again
   DatabaseNote? _note;
   
@@ -40,10 +43,18 @@ class _NewNotesViewState extends State<NewNotesView> {
     _textEditingController.addListener(_textControllerListener);
   }
 
-  Future<DatabaseNote> createNewNote()async {
-    print('createNewNote() started'); 
+  Future<DatabaseNote> createOrGetExistingNote(BuildContext)async {
+
+    final WidgetNote = context.getArguments<DatabaseNote>();
+
+    if(WidgetNote!=null){
+      _note=WidgetNote;
+      _textEditingController.text=WidgetNote.text;
+      return WidgetNote;
+    }    
     final existingNote= _note;
     if(existingNote!=null){
+      print('createNewNote() started'); 
       return existingNote;
     }
     final currentUser= AuthService.firebase().currentUser!;
@@ -51,8 +62,12 @@ class _NewNotesViewState extends State<NewNotesView> {
     print('Current user email: $email');
     final owner= await _notesService.getUser(email: email);
     print('Owner retrieved: $owner');
-    return await _notesService.createNote(owner: owner);
+    final newNote= await _notesService.createNote(owner: owner);
+    _note = newNote;
+    print("returning new note");
+    return newNote;
   }
+
   void _deleteNoteIfTextIsEmpty(){
     final note= _note;
     if(_textEditingController.text.isEmpty && note!=null){
@@ -82,11 +97,10 @@ class _NewNotesViewState extends State<NewNotesView> {
         title: const Text("New Note"),
       ),
     body:FutureBuilder(
-    future: createNewNote(), 
+    future: createOrGetExistingNote(context), 
     builder: (context, snapshot){
       switch (snapshot.connectionState) {
         case ConnectionState.done:
-          _note= snapshot.data as DatabaseNote;
           _setupTextControllerListener();
           return TextField(
             controller: _textEditingController,
@@ -96,7 +110,6 @@ class _NewNotesViewState extends State<NewNotesView> {
               hintText: "start typing in here",
             ),
           );
-          break;
         default:
         return const CircularProgressIndicator(); //when the createNewNote future completes then only we are able to see done
       }
